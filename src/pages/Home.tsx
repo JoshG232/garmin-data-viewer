@@ -4,6 +4,7 @@ import { Decoder, Stream } from '@garmin/fitsdk';
 import * as JSZip from 'jszip';
 import IndexLineChart from '../components/LineChart';
 import type { FitMessages } from '../Types/Activity';
+import type { ActivityMesg, DeviceInfoMesg } from '../Types/GarminFITActivity';
 
 
 
@@ -47,9 +48,15 @@ const Home: React.FC = () => {
         });
 
         console.log("Message type: ", typeof (messages))
-        console.log(messages);
-        console.log(errors);
+        console.log("FIT file: ", messages);
 
+        // console.log("FIT activity messsages: ", messages["activityMesgs"]);
+        // const activityMesgs: ActivityMesg = messages["activityMesgs"];
+        // console.log("Object ahhhhh: ", activityMesgs);
+
+        console.log("FIT device info messsages: ", messages["deviceInfoMesgs"]);
+        const deviceInfoMesgs: DeviceInfoMesg = messages["deviceInfoMesgs"];
+        console.log("Object ahhhhh: ", deviceInfoMesgs);
 
     }
 
@@ -62,7 +69,6 @@ const Home: React.FC = () => {
         const zip = await JSZip.loadAsync(file);
 
         const paths = Object.keys(zip.files).filter(p => !zip.files[p].dir)
-
         const activityFiles: object[] = []
 
         for (const path of paths) {
@@ -115,7 +121,7 @@ const Home: React.FC = () => {
             ...loadsArr
         ]
         setActivityLoads(trainingLoads);
-        //Need to get the data in a format for the graphs
+
 
     }
     return (
