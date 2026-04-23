@@ -4,7 +4,7 @@ import { Decoder, Stream } from '@garmin/fitsdk';
 import * as JSZip from 'jszip';
 import IndexLineChart from '../components/LineChart';
 import type { FitMessages } from '../Types/Activity';
-import type { ActivityMesg, DeviceInfoMesg } from '../Types/GarminFITActivity';
+import type { ActivityMesg, DeveloperDataIdMesg, DeviceInfoMesg, DeviceSettingsMesg, EventMesg, FieldDescriptionMesg, FileCreatorMesg, FileIdMesg, GarminFITActivity, GpsMetadataMesg, LapMesg, RecordMesg, SessionMesg, SportMesg, TimeInZoneMesg, TrainingSettingsMesg, UserProfileMesg, ZonesTargetMesg } from '../Types/GarminFITActivity';
 
 
 
@@ -25,6 +25,11 @@ const Home: React.FC = () => {
 
     const [allActivities, setAllActivities] = useState<FitMessages[]>([]);
     const [activityLoads, setActivityLoads] = useState<number[]>([]);
+
+    // const generateFITObject = (fitObject: any) => {
+
+    //     return "Hello"
+    // }
 
     const handleSingleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         console.log(event.target.files?.[0])
@@ -50,13 +55,48 @@ const Home: React.FC = () => {
         console.log("Message type: ", typeof (messages))
         console.log("FIT file: ", messages);
 
-        // console.log("FIT activity messsages: ", messages["activityMesgs"]);
-        // const activityMesgs: ActivityMesg = messages["activityMesgs"];
-        // console.log("Object ahhhhh: ", activityMesgs);
 
-        console.log("FIT device info messsages: ", messages["deviceInfoMesgs"]);
-        const deviceInfoMesgs: DeviceInfoMesg = messages["deviceInfoMesgs"];
-        console.log("Object ahhhhh: ", deviceInfoMesgs);
+        const activityMesgs: ActivityMesg[] = messages["activityMesgs"]
+        const developerDataIdMesgs: DeveloperDataIdMesg[] = messages["developerDataIdMesgs"]
+        const deviceInfoMesgs: DeviceInfoMesg[] = messages["deviceInfoMesgs"];
+        const deviceSettingsMesgs: DeviceSettingsMesg[] = messages["deviceSettingsMesgs"];
+        const eventMesgs: EventMesg[] = messages["eventMesgs"];
+        const fieldDescriptionMesgs: FieldDescriptionMesg[] = messages["fieldDescriptionMesgs"];
+        const fileCreatorMesgs: FileCreatorMesg[] = messages["fileCreatorMesgs"];
+        const fileIdMesgs: FileIdMesg[] = messages["fileIdMesgs"];
+        const gpsMetadataMesgs: GpsMetadataMesg[] = messages["gpsMetadataMesgs"];
+        const lapMesgs: LapMesg[] = messages["lapMesgs"];
+        const recordMesgs: RecordMesg[] = messages["recordMesgs"];
+        const sessionMesgs: SessionMesg[] = messages["sessionMesgs"]
+        const sportMesgs: SportMesg[] = messages["sportMesgs"];
+        const timeInZoneMesgs: TimeInZoneMesg[] = messages["timeInZoneMesgs"];
+        const trainingSettingsMesgs: TrainingSettingsMesg[] = messages["trainingSettingsMesgs"];
+        const userProfileMesgs: UserProfileMesg[] = messages["userProfileMesgs"];
+        const zonesTargetMesgs: ZonesTargetMesg[] = messages["zonesTargetMesgs"];
+
+
+        const garminFitActivity: GarminFITActivity = {
+            activityMesgs: activityMesgs,
+            developerDataIdMesgs: developerDataIdMesgs,
+            deviceInfoMesgs: deviceInfoMesgs,
+            deviceSettingsMesgs: deviceSettingsMesgs,
+            eventMesgs: eventMesgs,
+            fieldDescriptionMesgs: fieldDescriptionMesgs,
+            fileCreatorMesgs: fileCreatorMesgs,
+            fileIdMesgs: fileIdMesgs,
+            gpsMetadataMesgs: gpsMetadataMesgs,
+            lapMesgs: lapMesgs,
+            recordMesgs: recordMesgs,
+            sessionMesgs: sessionMesgs,
+            sportMesgs: sportMesgs,
+            timeInZoneMesgs: timeInZoneMesgs,
+            trainingSettingsMesgs: trainingSettingsMesgs,
+            userProfileMesgs: userProfileMesgs,
+            zonesTargetMesgs: zonesTargetMesgs,
+        }
+
+        console.log("Activity please work: ", garminFitActivity)
+
 
     }
 

@@ -7,6 +7,12 @@ export interface FileIdMesg {
     garminProduct: string;
 }
 
+export interface DeveloperDataIdMesg {
+    applicationId: number[];
+    applicationVersion: number;
+    developerDataIndex: number;
+}
+
 export interface FileCreatorMesg {
     softwareVersion: number;
 }
@@ -233,6 +239,17 @@ export interface ActivityMesg {
     eventType: string;
 }
 
+export interface FieldDescriptionMesg {
+    developerDataIndex: number;
+    fieldDefinitionNumber: number;
+    fieldName: string;
+    fitBaseTypeId: number;
+    key: number;
+    nativeFieldNum: number;
+    nativeMesgNum: number;
+    units: string;
+}
+
 export interface GarminFITActivity {
     fileIdMesgs: FileIdMesg[];
     fileCreatorMesgs: FileCreatorMesg[];
@@ -243,11 +260,13 @@ export interface GarminFITActivity {
     sportMesgs: SportMesg[];
     trainingSettingsMesgs: TrainingSettingsMesg[];
     zonesTargetMesgs: ZonesTargetMesg[];
-    trainingFileMesgs: TrainingFileMesg[];
+    // trainingFileMesgs: TrainingFileMesg[];
     recordMesgs: RecordMesg[];
     gpsMetadataMesgs: GpsMetadataMesg[];
     lapMesgs: LapMesg[];
     timeInZoneMesgs: TimeInZoneMesg[];
     sessionMesgs: SessionMesg[];
     activityMesgs: ActivityMesg[];
+    fieldDescriptionMesgs: FieldDescriptionMesg[];
+    developerDataIdMesgs: DeveloperDataIdMesg[];
 }
