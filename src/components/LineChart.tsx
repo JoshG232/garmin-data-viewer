@@ -1,4 +1,5 @@
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
+import type { LineChartTrainingLoadPoint } from '../Types/LineChart';
 // import { RechartsDevtools } from '@recharts/devtools';
 // import React from 'react';
 
@@ -45,21 +46,18 @@ import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
 // #endregion
 
 interface LineChartProps {
-    data: Array<{
-        name: string;
-        load: number
-    }>;
+    data: LineChartTrainingLoadPoint[];
 }
 
 export default function IndexLineChart({ data }: LineChartProps) {
     return (
         <LineChart style={{ width: '100%', aspectRatio: 1.618, maxWidth: 800, margin: 'auto' }} responsive data={data}>
             <CartesianGrid stroke="grey" strokeDasharray="5 5" />
-            <XAxis dataKey="name" stroke="black" />
+            <XAxis dataKey="date" stroke="black" />
             <YAxis width="auto" stroke="black" />
             <Line
                 type="monotone"
-                dataKey="uv"
+                dataKey="trainingLoad"
                 stroke="blue"
                 dot={{
                     fill: 'blue',
@@ -68,17 +66,7 @@ export default function IndexLineChart({ data }: LineChartProps) {
                     stroke: 'blue',
                 }}
             />
-            <Line
-                type="monotone"
-                dataKey="pv"
-                stroke="red"
-                dot={{
-                    fill: 'red',
-                }}
-                activeDot={{
-                    stroke: 'red',
-                }}
-            />
+
 
         </LineChart>
     );

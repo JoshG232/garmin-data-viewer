@@ -5,6 +5,7 @@ import * as JSZip from 'jszip';
 import IndexLineChart from '../components/LineChart';
 import type { FitMessages } from '../Types/Activity';
 import type { ActivityMesg, DeveloperDataIdMesg, DeviceInfoMesg, DeviceSettingsMesg, EventMesg, FieldDescriptionMesg, FileCreatorMesg, FileIdMesg, GarminFITActivity, GpsMetadataMesg, LapMesg, RecordMesg, SessionMesg, SportMesg, TimeInZoneMesg, TrainingSettingsMesg, UserProfileMesg, ZonesTargetMesg } from '../Types/GarminFITActivity';
+import type { LineChartTrainingLoadPoint } from '../Types/LineChart';
 
 
 
@@ -25,54 +26,27 @@ const Home: React.FC = () => {
 
     const [allActivities, setAllActivities] = useState<FitMessages[]>([]);
     const [activityLoads, setActivityLoads] = useState<number[]>([]);
-
-    // const generateFITObject = (fitObject: any) => {
-
-    //     return "Hello"
-    // }
-
-    const handleSingleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        console.log(event.target.files?.[0])
-        const file = event.target.files?.[0];
-        if (!file) return
-
-        const arrayBuffer = await file.arrayBuffer();
-
-        const uint8Array = new Uint8Array(arrayBuffer);
-        const stream = Stream.fromArrayBuffer(uint8Array.buffer);
-
-        if (!Decoder.isFIT(stream)) {
-            throw new Error("Invalid FIT file");
-        }
-
-        const decoder = new Decoder(stream);
-        const { messages, errors } = decoder.read({
-            applyScaleAndOffset: true,
-            convertDateTimesToDates: true,
-            convertTypesToStrings: true,
-        });
-
-        console.log("Message type: ", typeof (messages))
-        console.log("FIT file: ", messages);
+    const [trainingLoadOverTime, setTrainingLoadOverTime] = useState<LineChartTrainingLoadPoint[]>([]);
 
 
-        const activityMesgs: ActivityMesg[] = messages["activityMesgs"]
-        const developerDataIdMesgs: DeveloperDataIdMesg[] = messages["developerDataIdMesgs"]
-        const deviceInfoMesgs: DeviceInfoMesg[] = messages["deviceInfoMesgs"];
-        const deviceSettingsMesgs: DeviceSettingsMesg[] = messages["deviceSettingsMesgs"];
-        const eventMesgs: EventMesg[] = messages["eventMesgs"];
-        const fieldDescriptionMesgs: FieldDescriptionMesg[] = messages["fieldDescriptionMesgs"];
-        const fileCreatorMesgs: FileCreatorMesg[] = messages["fileCreatorMesgs"];
-        const fileIdMesgs: FileIdMesg[] = messages["fileIdMesgs"];
-        const gpsMetadataMesgs: GpsMetadataMesg[] = messages["gpsMetadataMesgs"];
-        const lapMesgs: LapMesg[] = messages["lapMesgs"];
-        const recordMesgs: RecordMesg[] = messages["recordMesgs"];
-        const sessionMesgs: SessionMesg[] = messages["sessionMesgs"]
-        const sportMesgs: SportMesg[] = messages["sportMesgs"];
-        const timeInZoneMesgs: TimeInZoneMesg[] = messages["timeInZoneMesgs"];
-        const trainingSettingsMesgs: TrainingSettingsMesg[] = messages["trainingSettingsMesgs"];
-        const userProfileMesgs: UserProfileMesg[] = messages["userProfileMesgs"];
-        const zonesTargetMesgs: ZonesTargetMesg[] = messages["zonesTargetMesgs"];
+    const generateFITObject = (fitObject: any) => {
+        const activityMesgs: ActivityMesg[] = fitObject["activityMesgs"]
+        const developerDataIdMesgs: DeveloperDataIdMesg[] = fitObject["developerDataIdMesgs"]
+        const deviceInfoMesgs: DeviceInfoMesg[] = fitObject["deviceInfoMesgs"];
+        const deviceSettingsMesgs: DeviceSettingsMesg[] = fitObject["deviceSettingsMesgs"];
+        const eventMesgs: EventMesg[] = fitObject["eventMesgs"];
+        const fieldDescriptionMesgs: FieldDescriptionMesg[] = fitObject["fieldDescriptionMesgs"];
+        const fileCreatorMesgs: FileCreatorMesg[] = fitObject["fileCreatorMesgs"];
+        const fileIdMesgs: FileIdMesg[] = fitObject["fileIdMesgs"];
+        const gpsMetadataMesgs: GpsMetadataMesg[] = fitObject["gpsMetadataMesgs"];
+        const lapMesgs: LapMesg[] = fitObject["lapMesgs"];
+        const recordMesgs: RecordMesg[] = fitObject["recordMesgs"];
+        const sessionMesgs: SessionMesg[] = fitObject["sessionMesgs"]
+        const sportMesgs: SportMesg[] = fitObject["sportMesgs"];
+        const timeInZoneMesgs: TimeInZoneMesg[] = fitObject["timeInZoneMesgs"];
+        const trainingSettingsMesgs: TrainingSettingsMesg[] = fitObject["trainingSettingsMesgs"];
+        const userProfileMesgs: UserProfileMesg[] = fitObject["userProfileMesgs"];
+        const zonesTargetMesgs: ZonesTargetMesg[] = fitObject["zonesTargetMesgs"];
 
 
         const garminFitActivity: GarminFITActivity = {
@@ -95,13 +69,41 @@ const Home: React.FC = () => {
             zonesTargetMesgs: zonesTargetMesgs,
         }
 
-        console.log("Activity please work: ", garminFitActivity)
+        // console.log("Transformed activity", garminFitActivity)
+        return garminFitActivity;
+    }
+
+    const handleSingleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        console.log(event.target.files?.[0])
+        const file = event.target.files?.[0];
+        if (!file) return
+
+        const arrayBuffer = await file.arrayBuffer();
+
+        const uint8Array = new Uint8Array(arrayBuffer);
+        const stream = Stream.fromArrayBuffer(uint8Array.buffer);
+
+        if (!Decoder.isFIT(stream)) {
+            throw new Error("Invalid FIT file");
+        }
+
+        const decoder = new Decoder(stream);
+        const { messages, errors } = decoder.read({
+            applyScaleAndOffset: true,
+            convertDateTimesToDates: true,
+            convertTypesToStrings: true,
+        });
+
+        const obj = generateFITObject(messages);
+        console.log(obj);
+
+
+
 
 
     }
 
     const handleZIPFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-
         console.log(event.target.files?.[0])
         const file = event.target.files?.[0];
         if (!file) return
@@ -122,48 +124,86 @@ const Home: React.FC = () => {
             }
 
             const decoder = new Decoder(stream);
-            const { messages, errors } = decoder.read({
-                applyScaleAndOffset: true,
-                convertDateTimesToDates: true,
-                convertTypesToStrings: true,
-            });
 
-            console.log("File: ", messages);
-            console.log(errors);
+            let messages: any;
+            let errors: any;
 
-            activityFiles.push(messages)
+            try {
+                const result = decoder.read({
+                    applyScaleAndOffset: true,
+                    convertDateTimesToDates: true,
+                    convertTypesToStrings: true,
+                });
+                messages = result.messages;
+                errors = result.errors;
+            } catch (error) {
+                console.error("Error reading in FIT file: ", errors);
+                console.error(error);
+            }
 
+            const singleActivity = generateFITObject(messages);
 
+            activityFiles.push(singleActivity)
 
         }
+        //Setting it to newAll first to trigger the state update of handleLoadPerActivity with the 
+        //correct data because updating the state is asynchronous
 
         const newAll = [
             ...allActivities,
             ...activityFiles
         ]
+        console.log("All activities: ", newAll);
         setAllActivities(newAll)
         handleLoadPerActivity(newAll);
     }
 
     const handleLoadPerActivity = async (activities: FitMessages[] = allActivities) => {
 
-        const loadsArr: number[] = []
+        // const loadsArr: number[] = []
+
+        // for (const activity of activities) {
+        //     const session = Array.isArray(activity.sessionMesgs) ? activity.sessionMesgs[0] : activity.sessionMesgs;
+        //     const trainingLoadPeak = session?.trainingLoadPeak;
+        //     console.log('Training load peak:', trainingLoadPeak);
+        //     loadsArr.push(Number(trainingLoadPeak));
+        // }
+
+        // const trainingLoads = [
+        //     ...activityLoads,
+        //     ...loadsArr
+        // ]
+
+        // setActivityLoads(trainingLoads);
+
+        const loadsArr: LineChartTrainingLoadPoint[] = [];
 
         for (const activity of activities) {
             const session = Array.isArray(activity.sessionMesgs) ? activity.sessionMesgs[0] : activity.sessionMesgs;
             const trainingLoadPeak = session?.trainingLoadPeak;
+            const timestamp = session?.timestamp;
             console.log('Training load peak:', trainingLoadPeak);
-            loadsArr.push(Number(trainingLoadPeak));
+
+            let formattedDate = '';
+            if (timestamp) {
+                const dateOfActivity = new Date(timestamp);
+                const pad = (num: number) => String(num).padStart(2, '0');
+                formattedDate = `${pad(dateOfActivity.getDate())}/${pad(dateOfActivity.getMonth() + 1)}/${dateOfActivity.getFullYear()}`;
+                console.log('Training load date:', formattedDate);
+            }
+
+            const trainingLoad: LineChartTrainingLoadPoint = {
+                date: formattedDate,
+                trainingLoad: trainingLoadPeak
+            }
+
+            loadsArr.push(trainingLoad);
         }
-
-        const trainingLoads = [
-            ...activityLoads,
-            ...loadsArr
-        ]
-        setActivityLoads(trainingLoads);
-
-
+        console.log(loadsArr);
+        setTrainingLoadOverTime(prev => [...prev, ...loadsArr]);
     }
+
+
     return (
         <>
             <Box sx={{ flexGrow: 1, bgcolor: 'background.default', minHeight: '100vh' }}>
@@ -212,12 +252,10 @@ const Home: React.FC = () => {
 
                             <Grid size={12}>
                                 <Paper elevation={0} sx={{ p: 3, height: 650, border: 1, borderColor: 'divider' }}>
-                                    <Typography variant="subtitle2" color="textSecondary">Heart Rate Over Time</Typography>
-                                    {/* <IndexLineChart data={ }></IndexLineChart> */}
+                                    <Typography variant="subtitle2" color="textSecondary">Training Load over time</Typography>
+                                    <IndexLineChart data={trainingLoadOverTime}></IndexLineChart>
                                 </Paper>
                             </Grid>
-
-                            {/* Rest of your grid items... */}
                         </Grid>
                     </Box>
                 </Box>
