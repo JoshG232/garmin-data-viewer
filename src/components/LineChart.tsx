@@ -66,8 +66,6 @@ export default function IndexLineChart({ data }: LineChartProps) {
                     stroke: 'blue',
                 }}
             />
-
-
         </LineChart>
     );
 }

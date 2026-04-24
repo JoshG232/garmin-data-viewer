@@ -27,8 +27,24 @@ const Home: React.FC = () => {
     const [allActivities, setAllActivities] = useState<FitMessages[]>([]);
     const [activityLoads, setActivityLoads] = useState<number[]>([]);
     const [trainingLoadOverTime, setTrainingLoadOverTime] = useState<LineChartTrainingLoadPoint[]>([]);
+    const [trainingLoadOverTimeInWeekBlock, setTrainingLoadOverTimeInWeekBlock] = useState<LineChartTrainingLoadPoint[]>([]);
 
+    const weekCommencing = (date: string) => {
+        const americanDate = date[3] + date[4] + "/" + date[0] + date[1] + "/" + date[6] + date[7] + date[8] + date[9];
+        const dateType = new Date(americanDate);
+        const diff = dateType.getDate() - dateType.getDay() + (dateType.getDay() === 0 ? -6 : 1);
+        return new Date(dateType.setDate(diff))
+    }
 
+    const formatDate = (timestamp: string) => {
+        let formattedDate = '';
+        if (timestamp) {
+            const dateOfActivity = new Date(timestamp);
+            const pad = (num: number) => String(num).padStart(2, '0');
+            formattedDate = `${pad(dateOfActivity.getDate())}/${pad(dateOfActivity.getMonth() + 1)}/${dateOfActivity.getFullYear()}`;
+        }
+        return formattedDate;
+    }
     const generateFITObject = (fitObject: any) => {
         const activityMesgs: ActivityMesg[] = fitObject["activityMesgs"]
         const developerDataIdMesgs: DeveloperDataIdMesg[] = fitObject["developerDataIdMesgs"]
@@ -97,10 +113,6 @@ const Home: React.FC = () => {
         const obj = generateFITObject(messages);
         console.log(obj);
 
-
-
-
-
     }
 
     const handleZIPFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -159,24 +171,8 @@ const Home: React.FC = () => {
     }
 
     const handleLoadPerActivity = async (activities: FitMessages[] = allActivities) => {
-
-        // const loadsArr: number[] = []
-
-        // for (const activity of activities) {
-        //     const session = Array.isArray(activity.sessionMesgs) ? activity.sessionMesgs[0] : activity.sessionMesgs;
-        //     const trainingLoadPeak = session?.trainingLoadPeak;
-        //     console.log('Training load peak:', trainingLoadPeak);
-        //     loadsArr.push(Number(trainingLoadPeak));
-        // }
-
-        // const trainingLoads = [
-        //     ...activityLoads,
-        //     ...loadsArr
-        // ]
-
-        // setActivityLoads(trainingLoads);
-
         const loadsArr: LineChartTrainingLoadPoint[] = [];
+        const loadsWeeklyArr: LineChartTrainingLoadPoint[] = [];
 
         for (const activity of activities) {
             const session = Array.isArray(activity.sessionMesgs) ? activity.sessionMesgs[0] : activity.sessionMesgs;
@@ -184,13 +180,7 @@ const Home: React.FC = () => {
             const timestamp = session?.timestamp;
             console.log('Training load peak:', trainingLoadPeak);
 
-            let formattedDate = '';
-            if (timestamp) {
-                const dateOfActivity = new Date(timestamp);
-                const pad = (num: number) => String(num).padStart(2, '0');
-                formattedDate = `${pad(dateOfActivity.getDate())}/${pad(dateOfActivity.getMonth() + 1)}/${dateOfActivity.getFullYear()}`;
-                console.log('Training load date:', formattedDate);
-            }
+            const formattedDate = formatDate(timestamp);
 
             const trainingLoad: LineChartTrainingLoadPoint = {
                 date: formattedDate,
@@ -200,7 +190,36 @@ const Home: React.FC = () => {
             loadsArr.push(trainingLoad);
         }
         console.log(loadsArr);
+
+        for (const load of loadsArr) {
+            console.log("Week: ", load.date, " Week commencing: ", formatDate(String(weekCommencing(load.date))));
+            const wcFormatedDate = formatDate(String(weekCommencing(load.date)))
+
+            const trainingLoad: LineChartTrainingLoadPoint = {
+                date: wcFormatedDate,
+                trainingLoad: load.trainingLoad
+            }
+
+            const alreadyInArr = loadsWeeklyArr.some(existingLoad => existingLoad.date === trainingLoad.date)
+            if (alreadyInArr) {
+                console.log("In array")
+                const loadObject = loadsWeeklyArr.find(item => item.date === trainingLoad.date);
+                if (loadObject) {
+                    console.log("Adding ", loadObject.trainingLoad, " and ", trainingLoad.trainingLoad);
+                    loadObject.trainingLoad = loadObject.trainingLoad + trainingLoad.trainingLoad;
+
+                }
+            } else {
+                loadsWeeklyArr.push(trainingLoad)
+            }
+
+
+
+        }
+
+        console.log(loadsWeeklyArr);
         setTrainingLoadOverTime(prev => [...prev, ...loadsArr]);
+        setTrainingLoadOverTimeInWeekBlock(prev => [...prev, ...loadsWeeklyArr])
     }
 
 
@@ -249,11 +268,16 @@ const Home: React.FC = () => {
                                     <Typography variant="subtitle2" color="textSecondary">Activity Table</Typography>
                                 </Paper>
                             </Grid>
-
-                            <Grid size={12}>
+                            <Grid size={6}>
                                 <Paper elevation={0} sx={{ p: 3, height: 650, border: 1, borderColor: 'divider' }}>
                                     <Typography variant="subtitle2" color="textSecondary">Training Load over time</Typography>
                                     <IndexLineChart data={trainingLoadOverTime}></IndexLineChart>
+                                </Paper>
+                            </Grid>
+                            <Grid size={6}>
+                                <Paper elevation={0} sx={{ p: 3, height: 650, border: 1, borderColor: 'divider' }}>
+                                    <Typography variant="subtitle2" color="textSecondary">Training Load over time (Weekly)</Typography>
+                                    <IndexLineChart data={trainingLoadOverTimeInWeekBlock}></IndexLineChart>
                                 </Paper>
                             </Grid>
                         </Grid>
