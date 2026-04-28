@@ -5,7 +5,8 @@ import * as JSZip from 'jszip';
 import IndexLineChart from '../components/LineChart';
 import type { FitMessages } from '../Types/Activity';
 import type { ActivityMesg, DeveloperDataIdMesg, DeviceInfoMesg, DeviceSettingsMesg, EventMesg, FieldDescriptionMesg, FileCreatorMesg, FileIdMesg, GarminFITActivity, GpsMetadataMesg, LapMesg, RecordMesg, SessionMesg, SportMesg, TimeInZoneMesg, TrainingSettingsMesg, UserProfileMesg, ZonesTargetMesg } from '../Types/GarminFITActivity';
-import type { LineChartTrainingLoadPoint } from '../Types/LineChart';
+import type { LineChartTotalDistancePoint, LineChartTrainingLoadPoint } from '../Types/LineChart';
+import IndexLineChartDistance from '../components/LineChart-Distance';
 
 
 
@@ -28,6 +29,8 @@ const Home: React.FC = () => {
     const [activityLoads, setActivityLoads] = useState<number[]>([]);
     const [trainingLoadOverTime, setTrainingLoadOverTime] = useState<LineChartTrainingLoadPoint[]>([]);
     const [trainingLoadOverTimeInWeekBlock, setTrainingLoadOverTimeInWeekBlock] = useState<LineChartTrainingLoadPoint[]>([]);
+    const [distanceOverTime, setdistanceOverTime] = useState<LineChartTotalDistancePoint[]>([]);
+    const [distanceOverTimeInWeekBlock, setdistanceOverTimeInWeekBlock] = useState<LineChartTotalDistancePoint[]>([]);
 
     const weekCommencing = (date: string) => {
         const americanDate = date[3] + date[4] + "/" + date[0] + date[1] + "/" + date[6] + date[7] + date[8] + date[9];
@@ -35,7 +38,6 @@ const Home: React.FC = () => {
         const diff = dateType.getDate() - dateType.getDay() + (dateType.getDay() === 0 ? -6 : 1);
         return new Date(dateType.setDate(diff))
     }
-
     const formatDate = (timestamp: string) => {
         let formattedDate = '';
         if (timestamp) {
@@ -88,7 +90,6 @@ const Home: React.FC = () => {
         // console.log("Transformed activity", garminFitActivity)
         return garminFitActivity;
     }
-
     const handleSingleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         console.log(event.target.files?.[0])
         const file = event.target.files?.[0];
@@ -168,6 +169,7 @@ const Home: React.FC = () => {
         console.log("All activities: ", newAll);
         setAllActivities(newAll)
         handleLoadPerActivity(newAll);
+        handleWeeklyDistance(newAll);
     }
 
     const handleLoadPerActivity = async (activities: FitMessages[] = allActivities) => {
@@ -222,6 +224,56 @@ const Home: React.FC = () => {
         setTrainingLoadOverTimeInWeekBlock(prev => [...prev, ...loadsWeeklyArr])
     }
 
+    const handleWeeklyDistance = async (activities: FitMessages[] = allActivities) => {
+        const distanceArr: LineChartTotalDistancePoint[] = [];
+        const distanceWeeklyArr: LineChartTotalDistancePoint[] = [];
+
+        for (const activity of activities) {
+            const session = Array.isArray(activity.sessionMesgs) ? activity.sessionMesgs[0] : activity.sessionMesgs;
+            const timestamp = session?.timestamp;
+            const distance = session?.totalDistance;
+
+
+            const formattedDate = formatDate(timestamp);
+
+            const totalDistance: LineChartTotalDistancePoint = {
+                date: formattedDate,
+                totalDistance: distance
+            }
+
+            distanceArr.push(totalDistance);
+        }
+        console.log(distanceArr);
+
+        for (const distance of distanceArr) {
+            console.log("Week: ", distance.date, " Week commencing: ", formatDate(String(weekCommencing(distance.date))));
+            const wcFormatedDate = formatDate(String(weekCommencing(distance.date)))
+
+            const totalDistance: LineChartTotalDistancePoint = {
+                date: wcFormatedDate,
+                totalDistance: distance.totalDistance
+            }
+
+            const alreadyInArr = distanceWeeklyArr.some(existingLoad => existingLoad.date === totalDistance.date)
+            if (alreadyInArr) {
+                console.log("In array")
+                const loadObject = distanceWeeklyArr.find(item => item.date === totalDistance.date);
+                if (loadObject) {
+                    console.log("Adding ", loadObject.totalDistance, " and ", totalDistance.totalDistance);
+                    loadObject.totalDistance = loadObject.totalDistance + totalDistance.totalDistance;
+
+                }
+            } else {
+                distanceWeeklyArr.push(totalDistance)
+            }
+        }
+        setdistanceOverTime(prev => [...prev, ...distanceWeeklyArr]);
+        setdistanceOverTimeInWeekBlock(prev => [...prev, ...distanceWeeklyArr])
+
+
+
+    }
+
 
     return (
         <>
@@ -264,18 +316,30 @@ const Home: React.FC = () => {
                         <Grid container spacing={2}>
                             {/* Use 'xs' for mobile and 'md/lg' for desktop layouts */}
                             <Grid size={12}>
-                                <Paper elevation={0} sx={{ p: 1, height: 450, border: 1, borderColor: 'divider' }}>
+                                <Paper elevation={0} sx={{ p: 1, border: 1, borderColor: 'divider' }}>
                                     <Typography variant="subtitle2" color="textSecondary">Activity Table</Typography>
                                 </Paper>
                             </Grid>
                             <Grid size={6}>
-                                <Paper elevation={0} sx={{ p: 3, height: 650, border: 1, borderColor: 'divider' }}>
+                                <Paper elevation={0} sx={{ p: 3, border: 1, borderColor: 'divider' }}>
                                     <Typography variant="subtitle2" color="textSecondary">Training Load over time</Typography>
                                     <IndexLineChart data={trainingLoadOverTime}></IndexLineChart>
                                 </Paper>
                             </Grid>
                             <Grid size={6}>
-                                <Paper elevation={0} sx={{ p: 3, height: 650, border: 1, borderColor: 'divider' }}>
+                                <Paper elevation={0} sx={{ p: 3, border: 1, borderColor: 'divider' }}>
+                                    <Typography variant="subtitle2" color="textSecondary">Training Load over time (Weekly)</Typography>
+                                    <IndexLineChart data={trainingLoadOverTimeInWeekBlock}></IndexLineChart>
+                                </Paper>
+                            </Grid>
+                            <Grid size={6}>
+                                <Paper elevation={0} sx={{ p: 3, border: 1, borderColor: 'divider' }}>
+                                    <Typography variant="subtitle2" color="textSecondary">Distance per week</Typography>
+                                    <IndexLineChartDistance data={distanceOverTimeInWeekBlock}></IndexLineChartDistance>
+                                </Paper>
+                            </Grid>
+                            <Grid size={6}>
+                                <Paper elevation={0} sx={{ p: 3, border: 1, borderColor: 'divider' }}>
                                     <Typography variant="subtitle2" color="textSecondary">Training Load over time (Weekly)</Typography>
                                     <IndexLineChart data={trainingLoadOverTimeInWeekBlock}></IndexLineChart>
                                 </Paper>
