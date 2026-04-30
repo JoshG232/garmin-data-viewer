@@ -7,6 +7,8 @@ import type { FitMessages } from '../Types/Activity';
 import type { ActivityMesg, DeveloperDataIdMesg, DeviceInfoMesg, DeviceSettingsMesg, EventMesg, FieldDescriptionMesg, FileCreatorMesg, FileIdMesg, GarminFITActivity, GpsMetadataMesg, LapMesg, RecordMesg, SessionMesg, SportMesg, TimeInZoneMesg, TrainingSettingsMesg, UserProfileMesg, ZonesTargetMesg } from '../Types/GarminFITActivity';
 import type { LineChartTotalDistancePoint, LineChartTrainingLoadPoint } from '../Types/LineChart';
 import IndexLineChartDistance from '../components/LineChart-Distance';
+import StackedBarChart from '../components/StackedBarChar-Zones';
+import type { BarChartTimeInZone } from '../Types/BarChart';
 
 
 
@@ -31,6 +33,8 @@ const Home: React.FC = () => {
     const [trainingLoadOverTimeInWeekBlock, setTrainingLoadOverTimeInWeekBlock] = useState<LineChartTrainingLoadPoint[]>([]);
     const [distanceOverTime, setdistanceOverTime] = useState<LineChartTotalDistancePoint[]>([]);
     const [distanceOverTimeInWeekBlock, setdistanceOverTimeInWeekBlock] = useState<LineChartTotalDistancePoint[]>([]);
+    const [timeInZoneOverTime, setTimeInZoneOverTime] = useState<BarChartTimeInZone[]>([]);
+    const [timeInZoneOverTimeInWeekBlock, setTimeInZoneOverTimeInWeekBlock] = useState<BarChartTimeInZone[]>([]);
 
     const weekCommencing = (date: string) => {
         const americanDate = date[3] + date[4] + "/" + date[0] + date[1] + "/" + date[6] + date[7] + date[8] + date[9];
@@ -115,7 +119,6 @@ const Home: React.FC = () => {
         console.log(obj);
 
     }
-
     const handleZIPFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         console.log(event.target.files?.[0])
         const file = event.target.files?.[0];
@@ -170,8 +173,8 @@ const Home: React.FC = () => {
         setAllActivities(newAll)
         handleLoadPerActivity(newAll);
         handleWeeklyDistance(newAll);
+        handleWeeklyTimeInZone(newAll);
     }
-
     const handleLoadPerActivity = async (activities: FitMessages[] = allActivities) => {
         const loadsArr: LineChartTrainingLoadPoint[] = [];
         const loadsWeeklyArr: LineChartTrainingLoadPoint[] = [];
@@ -223,7 +226,6 @@ const Home: React.FC = () => {
         setTrainingLoadOverTime(prev => [...prev, ...loadsArr]);
         setTrainingLoadOverTimeInWeekBlock(prev => [...prev, ...loadsWeeklyArr])
     }
-
     const handleWeeklyDistance = async (activities: FitMessages[] = allActivities) => {
         const distanceArr: LineChartTotalDistancePoint[] = [];
         const distanceWeeklyArr: LineChartTotalDistancePoint[] = [];
@@ -272,6 +274,68 @@ const Home: React.FC = () => {
 
 
 
+    }
+    const handleWeeklyTimeInZone = async (activities: FitMessages[] = allActivities) => {
+        const timeInZoneArr: BarChartTimeInZone[] = [];
+        const timeInZoneWeeklyArr: BarChartTimeInZone[] = [];
+
+        for (const activity of activities) {
+            const timeInZoneFull = Array.isArray(activity.timeInZoneMesgs) ? activity.timeInZoneMesgs[0] : activity.timeInZoneMesgs;
+            const timestamp = timeInZoneFull?.timestamp;
+            const zone1 = timeInZoneFull?.timeInHrZone[0];
+            const zone2 = timeInZoneFull?.timeInHrZone[1];
+            const zone3 = timeInZoneFull?.timeInHrZone[2];
+            const zone4 = timeInZoneFull?.timeInHrZone[3];
+            const zone5 = timeInZoneFull?.timeInHrZone[4];
+
+
+            const formattedDate = formatDate(timestamp);
+
+            const timeInZone: BarChartTimeInZone = {
+                date: formattedDate,
+                zone1: zone1,
+                zone2: zone2,
+                zone3: zone3,
+                zone4: zone4,
+                zone5: zone5
+            }
+
+            timeInZoneArr.push(timeInZone);
+        }
+        console.log(timeInZoneArr);
+
+        for (const timeInZoneTime of timeInZoneArr) {
+            // console.log("Week: ", distance.date, " Week commencing: ", formatDate(String(weekCommencing(distance.date))));
+            const wcFormatedDate = formatDate(String(weekCommencing(timeInZoneTime.date)))
+
+            const timeInZone: BarChartTimeInZone = {
+                date: wcFormatedDate ?? null,
+                zone1: timeInZoneTime.zone1 ?? 0,
+                zone2: timeInZoneTime.zone2 ?? 0,
+                zone3: timeInZoneTime.zone3 ?? 0,
+                zone4: timeInZoneTime.zone4 ?? 0,
+                zone5: timeInZoneTime.zone5 ?? 0,
+            }
+
+            const alreadyInArr = timeInZoneWeeklyArr.some(existingLoad => existingLoad.date === timeInZone.date)
+            if (alreadyInArr) {
+                console.log("In array")
+                const loadObject = timeInZoneWeeklyArr.find(item => item.date === timeInZone.date);
+                if (loadObject) {
+                    // console.log("Adding ", loadObject.totalDistance, " and ", totalDistance.totalDistance);
+                    loadObject.zone1 = loadObject.zone1 + timeInZone.zone1;
+                    loadObject.zone2 = loadObject.zone2 + timeInZone.zone2;
+                    loadObject.zone3 = loadObject.zone3 + timeInZone.zone3;
+                    loadObject.zone4 = loadObject.zone4 + timeInZone.zone4;
+                    loadObject.zone5 = loadObject.zone5 + timeInZone.zone5;
+
+                }
+            } else {
+                timeInZoneWeeklyArr.push(timeInZone)
+            }
+        }
+        setTimeInZoneOverTime(prev => [...prev, ...timeInZoneWeeklyArr]);
+        setTimeInZoneOverTimeInWeekBlock(prev => [...prev, ...timeInZoneWeeklyArr])
     }
 
 
@@ -340,8 +404,8 @@ const Home: React.FC = () => {
                             </Grid>
                             <Grid size={6}>
                                 <Paper elevation={0} sx={{ p: 3, border: 1, borderColor: 'divider' }}>
-                                    <Typography variant="subtitle2" color="textSecondary">Training Load over time (Weekly)</Typography>
-                                    <IndexLineChart data={trainingLoadOverTimeInWeekBlock}></IndexLineChart>
+                                    <Typography variant="subtitle2" color="textSecondary">Time in zones</Typography>
+                                    <StackedBarChart data={timeInZoneOverTimeInWeekBlock}></StackedBarChart>
                                 </Paper>
                             </Grid>
                         </Grid>
