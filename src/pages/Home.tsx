@@ -31,10 +31,17 @@ const Home: React.FC = () => {
     const [activityLoads, setActivityLoads] = useState<number[]>([]);
     const [trainingLoadOverTime, setTrainingLoadOverTime] = useState<LineChartTrainingLoadPoint[]>([]);
     const [trainingLoadOverTimeInWeekBlock, setTrainingLoadOverTimeInWeekBlock] = useState<LineChartTrainingLoadPoint[]>([]);
+    //Distances
+    const [totalDistance, setTotalDistance] = useState(0);
     const [distanceOverTime, setdistanceOverTime] = useState<LineChartTotalDistancePoint[]>([]);
     const [distanceOverTimeInWeekBlock, setdistanceOverTimeInWeekBlock] = useState<LineChartTotalDistancePoint[]>([]);
+
+    //Time in Zone
     const [timeInZoneOverTime, setTimeInZoneOverTime] = useState<BarChartTimeInZone[]>([]);
     const [timeInZoneOverTimeInWeekBlock, setTimeInZoneOverTimeInWeekBlock] = useState<BarChartTimeInZone[]>([]);
+
+    //Total time
+    const [totalTime, setTotalTime] = useState(0);
 
     const weekCommencing = (date: string) => {
         const americanDate = date[3] + date[4] + "/" + date[0] + date[1] + "/" + date[6] + date[7] + date[8] + date[9];
@@ -230,11 +237,14 @@ const Home: React.FC = () => {
         const distanceArr: LineChartTotalDistancePoint[] = [];
         const distanceWeeklyArr: LineChartTotalDistancePoint[] = [];
 
+
         for (const activity of activities) {
             const session = Array.isArray(activity.sessionMesgs) ? activity.sessionMesgs[0] : activity.sessionMesgs;
             const timestamp = session?.timestamp;
             const distance = session?.totalDistance;
+            const time = session?.totalElapsedTime;
 
+            setTotalTime(prev => prev + time);
 
             const formattedDate = formatDate(timestamp);
 
@@ -255,6 +265,8 @@ const Home: React.FC = () => {
                 date: wcFormatedDate,
                 totalDistance: distance.totalDistance
             }
+
+            setTotalDistance(prev => prev + totalDistance.totalDistance);
 
             const alreadyInArr = distanceWeeklyArr.some(existingLoad => existingLoad.date === totalDistance.date)
             if (alreadyInArr) {
@@ -288,7 +300,6 @@ const Home: React.FC = () => {
             const zone4 = timeInZoneFull?.timeInHrZone[3];
             const zone5 = timeInZoneFull?.timeInHrZone[4];
 
-
             const formattedDate = formatDate(timestamp);
 
             const timeInZone: BarChartTimeInZone = {
@@ -305,7 +316,6 @@ const Home: React.FC = () => {
         console.log(timeInZoneArr);
 
         for (const timeInZoneTime of timeInZoneArr) {
-            // console.log("Week: ", distance.date, " Week commencing: ", formatDate(String(weekCommencing(distance.date))));
             const wcFormatedDate = formatDate(String(weekCommencing(timeInZoneTime.date)))
 
             const timeInZone: BarChartTimeInZone = {
@@ -322,7 +332,6 @@ const Home: React.FC = () => {
                 console.log("In array")
                 const loadObject = timeInZoneWeeklyArr.find(item => item.date === timeInZone.date);
                 if (loadObject) {
-                    // console.log("Adding ", loadObject.totalDistance, " and ", totalDistance.totalDistance);
                     loadObject.zone1 = loadObject.zone1 + timeInZone.zone1;
                     loadObject.zone2 = loadObject.zone2 + timeInZone.zone2;
                     loadObject.zone3 = loadObject.zone3 + timeInZone.zone3;
@@ -338,6 +347,16 @@ const Home: React.FC = () => {
         setTimeInZoneOverTimeInWeekBlock(prev => [...prev, ...timeInZoneWeeklyArr])
     }
 
+    const formatTotalTime = (totalSeconds: number): string => {
+        if (totalSeconds < 0) return "0 hrs and 0 minutes";
+
+        const hours = Math.floor(totalSeconds / 3600);
+        const remainingSeconds = totalSeconds % 3600;
+        const minutes = Math.floor(remainingSeconds / 60);
+
+        return `${hours} hrs and ${minutes} minutes`;
+    }
+
 
     return (
         <>
@@ -347,19 +366,6 @@ const Home: React.FC = () => {
                         <Typography variant="h6" component="div" sx={{ fontWeight: 700 }}>
                             Garmin Data Viewer
                         </Typography>
-                        <Button
-                            component="label"
-                            role={undefined}
-                            variant="contained"
-                            tabIndex={-1}
-                        >
-                            Upload Single file
-                            <VisuallyHiddenInput
-                                type="file"
-                                onChange={(event) => handleSingleFileUpload(event)}
-                                multiple
-                            />
-                        </Button>
                         <Button
                             component="label"
                             role={undefined}
@@ -379,10 +385,15 @@ const Home: React.FC = () => {
                     <Box sx={{ py: 4, width: "90%" }}>
                         <Grid container spacing={2}>
                             {/* Use 'xs' for mobile and 'md/lg' for desktop layouts */}
-                            <Grid size={12}>
-                                <Paper elevation={0} sx={{ p: 1, border: 1, borderColor: 'divider' }}>
-                                    <Typography variant="subtitle2" color="textSecondary">Activity Table</Typography>
-                                </Paper>
+                            <Grid container size={12} sx={{
+                                justifyContent: "center",
+                                alignItems: "center",
+                            }}>
+                                <Grid size={2.4}><Paper>{(totalDistance / 1000).toFixed(2)} km</Paper></Grid>
+                                <Grid size={2.4}><Paper>{formatTotalTime(totalTime)}</Paper></Grid>
+                                <Grid size={2.4}><Paper>Hello</Paper></Grid>
+                                <Grid size={2.4}><Paper>Hello</Paper></Grid>
+                                <Grid size={2.4}><Paper>Hello</Paper></Grid>
                             </Grid>
                             <Grid size={6}>
                                 <Paper elevation={0} sx={{ p: 3, border: 1, borderColor: 'divider' }}>
@@ -406,6 +417,11 @@ const Home: React.FC = () => {
                                 <Paper elevation={0} sx={{ p: 3, border: 1, borderColor: 'divider' }}>
                                     <Typography variant="subtitle2" color="textSecondary">Time in zones</Typography>
                                     <StackedBarChart data={timeInZoneOverTimeInWeekBlock}></StackedBarChart>
+                                </Paper>
+                            </Grid>
+                            <Grid size={12}>
+                                <Paper elevation={0} sx={{ p: 1, border: 1, borderColor: 'divider' }}>
+                                    <Typography variant="subtitle2" color="textSecondary">Totals</Typography>
                                 </Paper>
                             </Grid>
                         </Grid>
