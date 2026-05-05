@@ -43,6 +43,9 @@ const Home: React.FC = () => {
     //Total time
     const [totalTime, setTotalTime] = useState(0);
 
+    //Total Ascent
+    const [totalAscent, setTotalAscent] = useState(0);
+
     const weekCommencing = (date: string) => {
         const americanDate = date[3] + date[4] + "/" + date[0] + date[1] + "/" + date[6] + date[7] + date[8] + date[9];
         const dateType = new Date(americanDate);
@@ -190,7 +193,7 @@ const Home: React.FC = () => {
             const session = Array.isArray(activity.sessionMesgs) ? activity.sessionMesgs[0] : activity.sessionMesgs;
             const trainingLoadPeak = session?.trainingLoadPeak;
             const timestamp = session?.timestamp;
-            console.log('Training load peak:', trainingLoadPeak);
+            // console.log('Training load peak:', trainingLoadPeak);
 
             const formattedDate = formatDate(timestamp);
 
@@ -201,10 +204,10 @@ const Home: React.FC = () => {
 
             loadsArr.push(trainingLoad);
         }
-        console.log(loadsArr);
+        // console.log(loadsArr);
 
         for (const load of loadsArr) {
-            console.log("Week: ", load.date, " Week commencing: ", formatDate(String(weekCommencing(load.date))));
+            // console.log("Week: ", load.date, " Week commencing: ", formatDate(String(weekCommencing(load.date))));
             const wcFormatedDate = formatDate(String(weekCommencing(load.date)))
 
             const trainingLoad: LineChartTrainingLoadPoint = {
@@ -214,10 +217,10 @@ const Home: React.FC = () => {
 
             const alreadyInArr = loadsWeeklyArr.some(existingLoad => existingLoad.date === trainingLoad.date)
             if (alreadyInArr) {
-                console.log("In array")
+                // console.log("In array")
                 const loadObject = loadsWeeklyArr.find(item => item.date === trainingLoad.date);
                 if (loadObject) {
-                    console.log("Adding ", loadObject.trainingLoad, " and ", trainingLoad.trainingLoad);
+                    // console.log("Adding ", loadObject.trainingLoad, " and ", trainingLoad.trainingLoad);
                     loadObject.trainingLoad = loadObject.trainingLoad + trainingLoad.trainingLoad;
 
                 }
@@ -229,7 +232,7 @@ const Home: React.FC = () => {
 
         }
 
-        console.log(loadsWeeklyArr);
+        // console.log(loadsWeeklyArr);
         setTrainingLoadOverTime(prev => [...prev, ...loadsArr]);
         setTrainingLoadOverTimeInWeekBlock(prev => [...prev, ...loadsWeeklyArr])
     }
@@ -243,8 +246,11 @@ const Home: React.FC = () => {
             const timestamp = session?.timestamp;
             const distance = session?.totalDistance;
             const time = session?.totalElapsedTime;
+            const ascent = session?.totalAscent;
+            console.log("Ascent: ", ascent)
 
             setTotalTime(prev => prev + time);
+            setTotalAscent(prev => prev + (ascent ?? 0));
 
             const formattedDate = formatDate(timestamp);
 
@@ -255,10 +261,10 @@ const Home: React.FC = () => {
 
             distanceArr.push(totalDistance);
         }
-        console.log(distanceArr);
+        // console.log(distanceArr);
 
         for (const distance of distanceArr) {
-            console.log("Week: ", distance.date, " Week commencing: ", formatDate(String(weekCommencing(distance.date))));
+            // console.log("Week: ", distance.date, " Week commencing: ", formatDate(String(weekCommencing(distance.date))));
             const wcFormatedDate = formatDate(String(weekCommencing(distance.date)))
 
             const totalDistance: LineChartTotalDistancePoint = {
@@ -270,10 +276,10 @@ const Home: React.FC = () => {
 
             const alreadyInArr = distanceWeeklyArr.some(existingLoad => existingLoad.date === totalDistance.date)
             if (alreadyInArr) {
-                console.log("In array")
+                // console.log("In array")
                 const loadObject = distanceWeeklyArr.find(item => item.date === totalDistance.date);
                 if (loadObject) {
-                    console.log("Adding ", loadObject.totalDistance, " and ", totalDistance.totalDistance);
+                    // console.log("Adding ", loadObject.totalDistance, " and ", totalDistance.totalDistance);
                     loadObject.totalDistance = loadObject.totalDistance + totalDistance.totalDistance;
 
                 }
@@ -313,7 +319,7 @@ const Home: React.FC = () => {
 
             timeInZoneArr.push(timeInZone);
         }
-        console.log(timeInZoneArr);
+        // console.log(timeInZoneArr);
 
         for (const timeInZoneTime of timeInZoneArr) {
             const wcFormatedDate = formatDate(String(weekCommencing(timeInZoneTime.date)))
@@ -329,7 +335,7 @@ const Home: React.FC = () => {
 
             const alreadyInArr = timeInZoneWeeklyArr.some(existingLoad => existingLoad.date === timeInZone.date)
             if (alreadyInArr) {
-                console.log("In array")
+                // console.log("In array")
                 const loadObject = timeInZoneWeeklyArr.find(item => item.date === timeInZone.date);
                 if (loadObject) {
                     loadObject.zone1 = loadObject.zone1 + timeInZone.zone1;
@@ -391,7 +397,7 @@ const Home: React.FC = () => {
                             }}>
                                 <Grid size={2.4}><Paper>{(totalDistance / 1000).toFixed(2)} km</Paper></Grid>
                                 <Grid size={2.4}><Paper>{formatTotalTime(totalTime)}</Paper></Grid>
-                                <Grid size={2.4}><Paper>Hello</Paper></Grid>
+                                <Grid size={2.4}><Paper>{totalAscent} m</Paper></Grid>
                                 <Grid size={2.4}><Paper>Hello</Paper></Grid>
                                 <Grid size={2.4}><Paper>Hello</Paper></Grid>
                             </Grid>
