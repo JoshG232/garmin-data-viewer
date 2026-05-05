@@ -46,6 +46,9 @@ const Home: React.FC = () => {
     //Total Ascent
     const [totalAscent, setTotalAscent] = useState(0);
 
+    //Total heart beats
+    const [totalHeartBeats, setTotalHeartBeats] = useState(0);
+
     const weekCommencing = (date: string) => {
         const americanDate = date[3] + date[4] + "/" + date[0] + date[1] + "/" + date[6] + date[7] + date[8] + date[9];
         const dateType = new Date(americanDate);
@@ -247,8 +250,9 @@ const Home: React.FC = () => {
             const distance = session?.totalDistance;
             const time = session?.totalElapsedTime;
             const ascent = session?.totalAscent;
-            console.log("Ascent: ", ascent)
+            const heartBeats = session?.avgHeartRate ?? 0;
 
+            setTotalHeartBeats(prev => prev + (((heartBeats ?? 0) * (time / 1000))));
             setTotalTime(prev => prev + time);
             setTotalAscent(prev => prev + (ascent ?? 0));
 
@@ -398,7 +402,7 @@ const Home: React.FC = () => {
                                 <Grid size={2.4}><Paper>{(totalDistance / 1000).toFixed(2)} km</Paper></Grid>
                                 <Grid size={2.4}><Paper>{formatTotalTime(totalTime)}</Paper></Grid>
                                 <Grid size={2.4}><Paper>{totalAscent} m</Paper></Grid>
-                                <Grid size={2.4}><Paper>Hello</Paper></Grid>
+                                <Grid size={2.4}><Paper>{totalHeartBeats.toFixed(2)} beats</Paper></Grid>
                                 <Grid size={2.4}><Paper>Hello</Paper></Grid>
                             </Grid>
                             <Grid size={6}>
