@@ -9,6 +9,7 @@ import type { LineChartTotalDistancePoint, LineChartTrainingLoadPoint } from '..
 import IndexLineChartDistance from '../components/LineChart-Distance';
 import StackedBarChart from '../components/StackedBarChar-Zones';
 import type { BarChartTimeInZone } from '../Types/BarChart';
+import ActivityTable from '../components/ActivityTable';
 
 
 
@@ -27,6 +28,7 @@ const VisuallyHiddenInput = styled('input')({
 
 const Home: React.FC = () => {
 
+    const [garminActivities, setGarminActivities] = useState<GarminFITActivity[]>([]);
     const [allActivities, setAllActivities] = useState<FitMessages[]>([]);
     const [activityLoads, setActivityLoads] = useState<number[]>([]);
     const [trainingLoadOverTime, setTrainingLoadOverTime] = useState<LineChartTrainingLoadPoint[]>([]);
@@ -48,6 +50,9 @@ const Home: React.FC = () => {
 
     //Total heart beats
     const [totalHeartBeats, setTotalHeartBeats] = useState(0);
+
+    //Total Activities
+    const [totalActivities, setTotalActivities] = useState(0);
 
     const weekCommencing = (date: string) => {
         const americanDate = date[3] + date[4] + "/" + date[0] + date[1] + "/" + date[6] + date[7] + date[8] + date[9];
@@ -141,6 +146,7 @@ const Home: React.FC = () => {
 
         const paths = Object.keys(zip.files).filter(p => !zip.files[p].dir)
         const activityFiles: object[] = []
+        const garminActArr: GarminFITActivity[] = [];
 
         for (const path of paths) {
             const innerArrayBuffer = await zip.files[path].async('arraybuffer')
@@ -172,11 +178,13 @@ const Home: React.FC = () => {
 
             const singleActivity = generateFITObject(messages);
 
-            activityFiles.push(singleActivity)
+            activityFiles.push(singleActivity);
+            garminActArr.push(singleActivity);
 
         }
         //Setting it to newAll first to trigger the state update of handleLoadPerActivity with the 
         //correct data because updating the state is asynchronous
+
 
         const newAll = [
             ...allActivities,
@@ -187,6 +195,11 @@ const Home: React.FC = () => {
         handleLoadPerActivity(newAll);
         handleWeeklyDistance(newAll);
         handleWeeklyTimeInZone(newAll);
+
+        const garminActivitiesNew = [
+            ...garminActArr
+        ]
+        setGarminActivities(garminActivitiesNew);
     }
     const handleLoadPerActivity = async (activities: FitMessages[] = allActivities) => {
         const loadsArr: LineChartTrainingLoadPoint[] = [];
@@ -252,6 +265,7 @@ const Home: React.FC = () => {
             const ascent = session?.totalAscent;
             const heartBeats = session?.avgHeartRate ?? 0;
 
+            setTotalActivities(prev => prev + 1);
             setTotalHeartBeats(prev => prev + (((heartBeats ?? 0) * (time / 1000))));
             setTotalTime(prev => prev + time);
             setTotalAscent(prev => prev + (ascent ?? 0));
@@ -402,8 +416,8 @@ const Home: React.FC = () => {
                                 <Grid size={2.4}><Paper>{(totalDistance / 1000).toFixed(2)} km</Paper></Grid>
                                 <Grid size={2.4}><Paper>{formatTotalTime(totalTime)}</Paper></Grid>
                                 <Grid size={2.4}><Paper>{totalAscent} m</Paper></Grid>
-                                <Grid size={2.4}><Paper>{totalHeartBeats.toFixed(2)} beats</Paper></Grid>
-                                <Grid size={2.4}><Paper>Hello</Paper></Grid>
+                                <Grid size={2.4}><Paper>{totalHeartBeats.toFixed(0)} beats</Paper></Grid>
+                                <Grid size={2.4}><Paper>{totalActivities} activities</Paper></Grid>
                             </Grid>
                             <Grid size={6}>
                                 <Paper elevation={0} sx={{ p: 3, border: 1, borderColor: 'divider' }}>
@@ -431,7 +445,7 @@ const Home: React.FC = () => {
                             </Grid>
                             <Grid size={12}>
                                 <Paper elevation={0} sx={{ p: 1, border: 1, borderColor: 'divider' }}>
-                                    <Typography variant="subtitle2" color="textSecondary">Totals</Typography>
+                                    <ActivityTable data={garminActivities}></ActivityTable>
                                 </Paper>
                             </Grid>
                         </Grid>
