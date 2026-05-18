@@ -11,9 +11,6 @@ import StackedBarChart from '../components/StackedBarChar-Zones';
 import type { BarChartTimeInZone } from '../Types/BarChart';
 import ActivityTable from '../components/ActivityTable';
 
-
-
-
 const VisuallyHiddenInput = styled('input')({
     clip: 'rect(0 0 0 0)',
     clipPath: 'inset(50%)',
@@ -30,16 +27,16 @@ const Home: React.FC = () => {
 
     const [garminActivities, setGarminActivities] = useState<GarminFITActivity[]>([]);
     const [allActivities, setAllActivities] = useState<FitMessages[]>([]);
-    const [activityLoads, setActivityLoads] = useState<number[]>([]);
+    // const [activityLoads, setActivityLoads] = useState<number[]>([]);
     const [trainingLoadOverTime, setTrainingLoadOverTime] = useState<LineChartTrainingLoadPoint[]>([]);
     const [trainingLoadOverTimeInWeekBlock, setTrainingLoadOverTimeInWeekBlock] = useState<LineChartTrainingLoadPoint[]>([]);
     //Distances
     const [totalDistance, setTotalDistance] = useState(0);
-    const [distanceOverTime, setdistanceOverTime] = useState<LineChartTotalDistancePoint[]>([]);
+    const [, setdistanceOverTime] = useState<LineChartTotalDistancePoint[]>([]);
     const [distanceOverTimeInWeekBlock, setdistanceOverTimeInWeekBlock] = useState<LineChartTotalDistancePoint[]>([]);
 
     //Time in Zone
-    const [timeInZoneOverTime, setTimeInZoneOverTime] = useState<BarChartTimeInZone[]>([]);
+    const [, setTimeInZoneOverTime] = useState<BarChartTimeInZone[]>([]);
     const [timeInZoneOverTimeInWeekBlock, setTimeInZoneOverTimeInWeekBlock] = useState<BarChartTimeInZone[]>([]);
 
     //Total time
@@ -112,31 +109,7 @@ const Home: React.FC = () => {
         // console.log("Transformed activity", garminFitActivity)
         return garminFitActivity;
     }
-    const handleSingleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        console.log(event.target.files?.[0])
-        const file = event.target.files?.[0];
-        if (!file) return
 
-        const arrayBuffer = await file.arrayBuffer();
-
-        const uint8Array = new Uint8Array(arrayBuffer);
-        const stream = Stream.fromArrayBuffer(uint8Array.buffer);
-
-        if (!Decoder.isFIT(stream)) {
-            throw new Error("Invalid FIT file");
-        }
-
-        const decoder = new Decoder(stream);
-        const { messages, errors } = decoder.read({
-            applyScaleAndOffset: true,
-            convertDateTimesToDates: true,
-            convertTypesToStrings: true,
-        });
-
-        const obj = generateFITObject(messages);
-        console.log(obj);
-
-    }
     const handleZIPFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         console.log(event.target.files?.[0])
         const file = event.target.files?.[0];
