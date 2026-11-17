@@ -1,17 +1,13 @@
 import { Outlet } from "react-router-dom";
-// import { SidebarProvider } from "@/components/ui/sidebar"
-// import { AppSidebar } from "@/components/app-sidebar"
+import Sidebar from "./Sidebar";
 
 const MainLayout = () => {
     return (
-        <div className="d-flex">
-            {/* <SidebarProvider>
-                <AppSidebar /> */}
-            <main>
+        <div style={{ display: "flex", minHeight: "100vh" }}>
+            <Sidebar />
+            <main style={{ flex: 1, marginLeft: 240 }}>
                 <Outlet />
             </main>
-            {/* </SidebarProvider> */}
-
         </div>
     )
 }
